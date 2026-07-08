@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import LoteCultivo, TareaProgramada
+from .models import Insumo, LoteCultivo, TareaProgramada, UsoInsumo
 from datetime import timedelta
 
 @receiver(post_save, sender=LoteCultivo)
@@ -51,3 +51,15 @@ def actualizar_disponibilidad_cama(sender, instance, created, **kwargs):
             if cama_estado == 'TERMINADO':
                 instance.cama.disponibilidad = 'DISPONIBLE'
                 instance.cama.save()
+
+@receiver(post_save, sender=TareaProgramada)
+def descontar_inventario_por_tarea(sender, instance, created, **kwargs):
+    if instance.completada and instance.tipo_tarea == 'FERTILIZACION':
+        cantidad_camas_fertilizadas = 1
+        dosis_a_usar = UsoInsumo.objects.filter(
+            cultivo=instance.lote_cultivo.plantilla, 
+            insumo=instance.insumo_utilizado
+        ).first()
+        dosis_total = dosis_a_usar.dosis * cantidad_camas_fertilizadas
+        instance.insumo_utilizado.cantidad_disponible -= dosis_total
+        instance.insumo_utilizado.save()

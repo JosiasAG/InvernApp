@@ -30,6 +30,7 @@ class TareaProgramada(models.Model):
     tipo_tarea = models.CharField(max_length=50, choices=[('RIEGO', 'Riego'), ('PODA', 'Poda'), ('FERTILIZACION', 'Fertilización'), ('COSECHA', 'Cosecha')])
     fecha_programada = models.DateField()
     completada = models.BooleanField(default=False)
+    insumo_utilizado = models.ForeignKey('Insumo', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Tarea {self.tipo_tarea} para {self.lote_cultivo.id_lote} programada para {self.fecha_programada}"
@@ -58,3 +59,19 @@ class Cama(models.Model):
 
     def __str__(self):
         return f"{self.numero_cama} - {self.zona.nombre}"
+    
+class Insumo(models.Model):
+    nombre = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')])
+    descripcion = models.TextField(blank=True, null=True)
+    cantidad_disponible = models.FloatField()
+    unidad_medida = models.CharField(max_length=50, choices=[('KG', 'Kilogramos'), ('L', 'Litros'), ('UNIDAD', 'Unidad'), ('BULTOS', 'Bultos')])
+    cantidad_minima = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return self.nombre
+    
+class UsoInsumo(models.Model):
+    cultivo = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
+    insumo = models.ForeignKey(Insumo, on_delete=models.CASCADE)
+    dosis_por_cama = models.FloatField()
