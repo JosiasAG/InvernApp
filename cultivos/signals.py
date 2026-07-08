@@ -39,3 +39,15 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 tipo_tarea='COSECHA',
                 fecha_programada=fecha_tarea
             )
+
+@receiver(post_save, sender=LoteCultivo)
+def actualizar_disponibilidad_cama(sender, instance, created, **kwargs):
+    if instance.cama:
+        cama_estado = instance.estado
+        if created:
+            instance.cama.disponibilidad = 'OCUPADA'
+            instance.cama.save()
+        else:
+            if cama_estado == 'TERMINADO':
+                instance.cama.disponibilidad = 'DISPONIBLE'
+                instance.cama.save()
