@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Cultivo(models.Model):
     nombre = models.CharField(max_length=100)
@@ -26,7 +27,7 @@ class LoteCultivo(models.Model):
         return f"Lote {self.id_lote} - {self.plantilla.nombre}"
 
 class TareaProgramada(models.Model):
-    lote_cultivo = models.ForeignKey(LoteCultivo, on_delete=models.CASCADE)
+    lote_cultivo = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE)
     tipo_tarea = models.CharField(max_length=50, choices=[('RIEGO', 'Riego'), ('PODA', 'Poda'), ('FERTILIZACION', 'Fertilización'), ('COSECHA', 'Cosecha')])
     fecha_programada = models.DateField()
     completada = models.BooleanField(default=False)
@@ -61,12 +62,14 @@ class Cama(models.Model):
         return f"{self.numero_cama} - {self.zona.nombre}"
     
 class Insumo(models.Model):
-    nombre = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')])
+    nombre = models.ForeignKey('CatalogoInsumos', on_delete=models.CASCADE, related_name='insumos')
+    lote = models.CharField(max_length=100, blank=True, null=True)
+    proveedor = models.ForeignKey('Proveedor', on_delete=models.CASCADE, related_name='catalogo_insumos', default=None, null=True, blank=True)
+    tipo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')], default='-----')
     descripcion = models.TextField(blank=True, null=True)
     cantidad_disponible = models.FloatField()
-    unidad_medida = models.CharField(max_length=50, choices=[('KG', 'Kilogramos'), ('L', 'Litros'), ('UNIDAD', 'Unidad'), ('BULTOS', 'Bultos')])
     cantidad_minima = models.FloatField(default=0.0)
+    
 
     def __str__(self):
         return self.nombre
@@ -75,3 +78,26 @@ class UsoInsumo(models.Model):
     cultivo = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
     insumo = models.ForeignKey(Insumo, on_delete=models.CASCADE)
     dosis_por_cama = models.FloatField()
+
+    def __str__(self):
+        return f"{self.insumo.nombre} para {self.cultivo.nombre}"
+    
+class Proveedor(models.Model):
+    nombre = models.CharField(max_length=100)
+    contacto = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=20)
+    email = models.EmailField()
+    direccion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+    
+class CatalogoInsumos(models.Model):
+    tipo_insumo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')])
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    unidad_medida = models.CharField(max_length=50, choices=[('KG', 'Kilogramos'), ('L', 'Litros'), ('UNIDAD', 'Unidad'), ('BULTOS', 'Bultos')])
+
+
+    def __str__(self):
+        return f"{self.nombre}"

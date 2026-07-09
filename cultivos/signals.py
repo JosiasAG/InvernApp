@@ -60,6 +60,6 @@ def descontar_inventario_por_tarea(sender, instance, created, **kwargs):
             cultivo=instance.lote_cultivo.plantilla, 
             insumo=instance.insumo_utilizado
         ).first()
-        dosis_total = dosis_a_usar.dosis * cantidad_camas_fertilizadas
+        dosis_total = dosis_a_usar.dosis_por_cama * cantidad_camas_fertilizadas
         instance.insumo_utilizado.cantidad_disponible -= dosis_total
         instance.insumo_utilizado.save()
