@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from cultivos.models import Cama, CatalogoInsumos, Cultivo, Insumo, Invernadero, LoteCultivo, Proveedor, TareaProgramada, UsoInsumo, Zona
+from usuarios.models import AsistenciaDiaria, PerfilEmpleado
 
 admin.site.register(Cultivo)
 admin.site.register(LoteCultivo)
@@ -12,3 +13,5 @@ admin.site.register(Insumo)
 admin.site.register(UsoInsumo)
 admin.site.register(Proveedor)
 admin.site.register(CatalogoInsumos)
+admin.site.register(AsistenciaDiaria)
+admin.site.register(PerfilEmpleado)
