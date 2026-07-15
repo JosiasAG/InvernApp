@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Insumo, LoteCultivo, TareaProgramada, UsoInsumo
 from datetime import timedelta, timezone
+from usuarios.models import AsistenciaDiaria
 
 @receiver(post_save, sender=LoteCultivo)
 def crear_calendario_lote(sender, instance, created, **kwargs):
@@ -13,7 +14,10 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
             TareaProgramada.objects.create(
                 lote_cultivo=instance,
                 tipo_tarea='RIEGO',
-                fecha_programada=fecha_tarea
+                fecha_programada=fecha_tarea,
+                invernadero=instance.invernadero,
+                zona=instance.zona,
+                cama=instance.cama,
             )
 
         for i in range(plantilla.dias_para_primera_poda, plantilla.ciclo_de_vida_total, plantilla.frecuencia_poda):
@@ -21,7 +25,10 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
             TareaProgramada.objects.create(
                 lote_cultivo=instance,
                 tipo_tarea='PODA',
-                fecha_programada=fecha_tarea
+                fecha_programada=fecha_tarea,
+                invernadero=instance.invernadero,
+                zona=instance.zona,
+                cama=instance.cama,
             )
 
         for i in range(plantilla.dias_para_primer_fertilizacion, plantilla.ciclo_de_vida_total, plantilla.frecuencia_fertilizacion):  # Suponiendo fertilización cada 30 días
@@ -29,7 +36,10 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
             TareaProgramada.objects.create(
                 lote_cultivo=instance,
                 tipo_tarea='FERTILIZACION',
-                fecha_programada=fecha_tarea
+                fecha_programada=fecha_tarea,
+                invernadero=instance.invernadero,
+                zona=instance.zona,
+                cama=instance.cama,
             )
 
         for i in range(plantilla.dias_para_inicio_cosecha, plantilla.ciclo_de_vida_total, plantilla.frecuencia_cosecha):  # Suponiendo cosecha cada 30 días
@@ -37,7 +47,10 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
             TareaProgramada.objects.create(
                 lote_cultivo=instance,
                 tipo_tarea='COSECHA',
-                fecha_programada=fecha_tarea
+                fecha_programada=fecha_tarea,
+                invernadero=instance.invernadero,
+                zona=instance.zona,
+                cama=instance.cama,
             )
 
 @receiver(post_save, sender=LoteCultivo)

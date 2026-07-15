@@ -22,7 +22,9 @@ class LoteCultivo(models.Model):
     plantilla = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
     fecha_plantacion = models.DateField()
     estado = models.CharField(max_length=50, choices=[('CRECIMIENTO', 'En crecimiento'), ('COSECHA', 'En cosecha'), ('TERMINADO', 'Terminado')], default='CRECIMIENTO')
-    cama = models.ForeignKey('Cama', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
+    zona = models.ForeignKey('Zona', on_delete=models.SET_NULL, null=True, blank=True)
+    cama = models.ForeignKey('Cama', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Lote {self.id_lote} - {self.plantilla.nombre}"
@@ -42,6 +44,10 @@ class TareaProgramada(models.Model):
     )
     fecha_completada = models.DateTimeField(null=True, blank=True)
     duracion_tarea = models.DurationField(null=True, blank=True)
+    invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
+    zona = models.ForeignKey('Zona', on_delete=models.SET_NULL, null=True, blank=True)
+    cama = models.ForeignKey('Cama', on_delete=models.SET_NULL, null=True, blank=True)
+    
 
     def __str__(self):
         return f"Tarea {self.tipo_tarea} para {self.lote_cultivo.id_lote} programada para {self.fecha_programada}"

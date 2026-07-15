@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Lista de Tareas Programadas</h1>
+
+
+<form action="{% url 'lista_tareas' %}" method="POST">
+    {% csrf_token %}
+    <input type="date" name="fecha_filtro" value="{{hoy|date:'Y-m-d'}}">
+    <button type="submit">Filtrar por fecha</button>
+</form>
+{{hoy}}
+<ul>
+    {% for tarea in tareas %}
+        <li>{{tarea}}</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
