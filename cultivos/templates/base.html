@@ -1,22 +1,25 @@
-{% block content %}
-
 <h1>Bienvenido a InvernApp</h1>
 
 <nav>
-    <ul>
-        <li>
-            <a href="lista_tareas/">Tareas diarias</a>
+    <ul><li>
+            <a href="/">Inicio</a>
         </li>
         <li>
-            <a href="">Mapa de cultivos</a>
+            <a href="/lista_tareas/">Tareas diarias</a>
         </li>
         <li>
-            <a href="">Calendario de cultivos</a>
+            <a href="/mapa_cultivos/">Mapa de cultivos</a>
         </li>
         <li>
-            <a href="">Lista de insumos</a>
+            <a href="/calendario_cultivos/">Calendario de cultivos</a>
+        </li>
+        <li>
+            <a href="/lista_insumos/">Lista de insumos</a>
         </li>
     </ul>
 </nav>
+
+{% block content %}
+
 
 {% endblock %}

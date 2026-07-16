@@ -18,6 +18,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 invernadero=instance.invernadero,
                 zona=instance.zona,
                 cama=instance.cama,
+                cultivo=instance.lote_cultivo.plantilla
             )
 
         for i in range(plantilla.dias_para_primera_poda, plantilla.ciclo_de_vida_total, plantilla.frecuencia_poda):
@@ -29,6 +30,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 invernadero=instance.invernadero,
                 zona=instance.zona,
                 cama=instance.cama,
+                cultivo=instance.lote_cultivo.plantilla
             )
 
         for i in range(plantilla.dias_para_primer_fertilizacion, plantilla.ciclo_de_vida_total, plantilla.frecuencia_fertilizacion):  # Suponiendo fertilización cada 30 días
@@ -40,6 +42,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 invernadero=instance.invernadero,
                 zona=instance.zona,
                 cama=instance.cama,
+                cultivo=instance.lote_cultivo.plantilla,
             )
 
         for i in range(plantilla.dias_para_inicio_cosecha, plantilla.ciclo_de_vida_total, plantilla.frecuencia_cosecha):  # Suponiendo cosecha cada 30 días
@@ -51,6 +54,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 invernadero=instance.invernadero,
                 zona=instance.zona,
                 cama=instance.cama,
+                cultivo=instance.lote_cultivo.plantilla
             )
 
 @receiver(post_save, sender=LoteCultivo)

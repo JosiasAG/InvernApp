@@ -25,6 +25,11 @@ class LoteCultivo(models.Model):
     invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
     zona = models.ForeignKey('Zona', on_delete=models.SET_NULL, null=True, blank=True)
     cama = models.ForeignKey('Cama', on_delete=models.SET_NULL, null=True, blank=True)
+    SISTEMAS_CULTIVO = [
+        ('HIDROPONICO', 'Hidroponía (Sustrato / Solución Recirculante)'),
+        ('TRADICIONAL', 'Tradicional (Suelo / Tierra)'),
+    ]
+    sistema_cultivo = models.CharField(max_length=20, choices=SISTEMAS_CULTIVO, default='TRADICIONAL')
 
     def __str__(self):
         return f"Lote {self.id_lote} - {self.plantilla.nombre}"
