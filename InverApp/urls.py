@@ -6,4 +6,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('lista_tareas/', views.lista_tareas, name='lista_tareas'),
+    path('detalle_tarea/<int:tarea_id>/', views.detalle_tarea, name='detalle_tarea'),
+    path('crear_tarea/', views.crear_tarea, name='crear_tarea')
 ]

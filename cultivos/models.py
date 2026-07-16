@@ -6,13 +6,17 @@ class Cultivo(models.Model):
     nombre = models.CharField(max_length=100)
     dias_para_primer_riego = models.IntegerField()
     dias_para_primera_poda = models.IntegerField()
-    dias_para_primer_fertilizacion = models.IntegerField(default=0)  # Suponiendo fertilización cada 30 días
+    dias_para_primer_fertilizacion = models.IntegerField(default=0) 
+    dias_para_primer_fumigacion = models.IntegerField()
     dias_para_inicio_cosecha = models.IntegerField()
     ciclo_de_vida_total = models.IntegerField()
     frecuencia_riego = models.IntegerField(default=0) 
     frecuencia_poda = models.IntegerField(default=0) 
     frecuencia_fertilizacion = models.IntegerField(default=0)
+    frecuencia_fumigacion = models.IntegerField(default = 0)
     frecuencia_cosecha = models.IntegerField(default=0)
+    
+
 
     def __str__(self):
         return self.nombre
@@ -28,6 +32,7 @@ class LoteCultivo(models.Model):
     SISTEMAS_CULTIVO = [
         ('HIDROPONICO', 'Hidroponía (Sustrato / Solución Recirculante)'),
         ('TRADICIONAL', 'Tradicional (Suelo / Tierra)'),
+        ('MIXTO', 'Apto para ambos (Hidroponía y Tradicional)'),
     ]
     sistema_cultivo = models.CharField(max_length=20, choices=SISTEMAS_CULTIVO, default='TRADICIONAL')
 
@@ -36,17 +41,10 @@ class LoteCultivo(models.Model):
 
 class TareaProgramada(models.Model):
     lote_cultivo = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE)
-    tipo_tarea = models.CharField(max_length=50, choices=[('RIEGO', 'Riego'), ('PODA', 'Poda'), ('FERTILIZACION', 'Fertilización'), ('COSECHA', 'Cosecha')])
+    tipo_tarea = models.CharField(max_length=50, choices=[('RIEGO', 'Riego'), ('PODA', 'Poda'), ('FERTILIZACION', 'Fertilización'), ('FUMIGACION', 'Fumigación'), ('COSECHA', 'Cosecha')])
     fecha_programada = models.DateField()
     completada = models.BooleanField(default=False)
     insumo_utilizado = models.ForeignKey('Insumo', on_delete=models.SET_NULL, null=True, blank=True)
-    usuario_asignado = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='tareas_asignadas'
-    )
     fecha_completada = models.DateTimeField(null=True, blank=True)
     duracion_tarea = models.DurationField(null=True, blank=True)
     invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)

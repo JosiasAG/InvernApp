@@ -2,7 +2,7 @@ from django.utils import timezone
 
 from django.shortcuts import render
 from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Zona, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
-
+from .forms import formulario_nuevo_lote
 
 def home(request):
     return render(request, 'base.html')
@@ -23,3 +23,40 @@ def lista_tareas(request):
         'tareas': tareas,
         'hoy': fecha_hoy
         })
+    
+def detalle_tarea(request, tarea_id):
+    tarea = TareaProgramada.objects.get(id=tarea_id)
+
+    if tarea.tipo_tarea == 'RIEGO':
+        return render(request, 'detalle_tarea.html', {
+        'riego': tarea
+    })
+    elif tarea.tipo_tarea == 'PODA':
+        return render(request, 'detalle_tarea.html', {
+        'poda': tarea
+    })
+    elif tarea.tipo_tarea == 'FERTILIZACION':
+        return render(request, 'detalle_tarea.html', {
+        'fertilizacion': tarea
+    })
+    elif tarea.tipo_tarea == 'FUMIGACION':
+        return render(request, 'detalle_tarea.html', {
+        'fumigacion': tarea
+    })
+    else: 
+        return render(request, 'detalle_tarea.html', {
+        'cosecha': tarea
+    })
+
+def crear_tarea(request):
+    if request.method == "GET":
+        return render (request, "crear_lote.html", {
+            'form': formulario_nuevo_lote}) 
+    elif request.method=="POST":
+        form = formulario_nuevo_lote(request.POST)
+        nueva_tarea = form.save(commit=False)
+        nueva_tarea.save()
+        return render (request, "crear_lote.html", {
+            'form': formulario_nuevo_lote}) 
+
+    

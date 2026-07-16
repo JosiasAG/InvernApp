@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Detalle de la Tarea</h1>
+{% if riego %}
+    <p><strong>Tipo de Tarea:</strong> {{ riego.tipo_tarea }}</p>
+    <p><strong>Fecha Programada:</strong> {{ riego.fecha_programada }}</p>
+    <p><strong>Lote de Cultivo:</strong> {{ riego.lote_cultivo }}</p>
+{% elif poda %}
+    <p><strong>Tipo de Tarea:</strong> {{ poda.tipo_tarea }}</p>
+    <p><strong>Fecha Programada:</strong> {{ poda.fecha_programada }}</p>
+    <p><strong>Lote de Cultivo:</strong> {{ poda.lote_cultivo }}</p>
+{% elif fertilizacion %}
+    <p><strong>Tipo de Tarea:</strong> {{ fertilizacion.tipo_tarea }}</p>
+    <p><strong>Fecha Programada:</strong> {{ fertilizacion.fecha_programada }}</p>
+    <p><strong>Lote de Cultivo:</strong> {{ fertilizacion.lote_cultivo }}</p>
+{% elif fumigacion %}
+    <p><strong>Tipo de Tarea:</strong> {{ fumigacion.tipo_tarea }}</p>
+    <p><strong>Fecha Programada:</strong> {{ fumigacion.fecha_programada }}</p>
+    <p><strong>Lote de Cultivo:</strong> {{ fumigacion.lote_cultivo }}</p>
+{% else %}
+    <p><strong>Tipo de Tarea:</strong> {{ cosecha.tipo_tarea }}</p>
+    <p><strong>Fecha Programada:</strong> {{ cosecha.fecha_programada }}</p>
+    <p><strong>Lote de Cultivo:</strong> {{ cosecha.lote_cultivo }}</p>
+{% endif %}
+{% endblock %}

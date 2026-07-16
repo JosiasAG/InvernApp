@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Crear nuevo lote de producción</h1>
+<form action="/crear_tarea/" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button>
+        Guardar
+    </button>
+</form>
+
+{% endblock %}
