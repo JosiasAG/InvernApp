@@ -1,5 +1,5 @@
 from django.forms import ModelForm, DateInput, Select, TextInput
-from .models import LoteCultivo
+from .models import LoteCultivo, Cultivo, Invernadero, Bloque, Cama
 
 class formulario_nuevo_lote(ModelForm):
     class Meta:
@@ -11,3 +11,14 @@ class formulario_nuevo_lote(ModelForm):
                 attrs= {'type': 'date'}
                 ),
             }
+        
+class formulario_cultivo(ModelForm):
+    class Meta:
+        model = Cultivo
+        fields = '__all__'
+
+class formulario_invernadero(ModelForm):
+    class Meta:
+        model = Invernadero
+        fields = '__all__'
+

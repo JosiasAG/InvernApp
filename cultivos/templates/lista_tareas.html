@@ -13,7 +13,7 @@
 {{hoy}}
 <ul>
     {% for tarea in tareas %}
-        <li><a href="{% url 'detalle_tarea' tarea.id %}">{{tarea.tipo_tarea}} de {{tarea.lote_cultivo.plantilla}} en {{tarea.invernadero.nombre}} {{tarea.zona.nombre}} cama no. {{tarea.cama.numero_cama}}</a></li>
+        <li><a href="{% url 'detalle_tarea' tarea.id %}">{{tarea.tipo_tarea}} de {{tarea.lote_cultivo.plantilla}} en {{tarea.invernadero.nombre}} {{tarea.bloque.nombre}} cama no. {{tarea.cama.numero_cama}}</a></li>
     {% endfor %}
 </ul>
 

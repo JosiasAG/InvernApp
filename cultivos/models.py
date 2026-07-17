@@ -27,7 +27,7 @@ class LoteCultivo(models.Model):
     fecha_plantacion = models.DateField()
     estado = models.CharField(max_length=50, choices=[('CRECIMIENTO', 'En crecimiento'), ('COSECHA', 'En cosecha'), ('TERMINADO', 'Terminado')], default='CRECIMIENTO')
     invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
-    zona = models.ForeignKey('Zona', on_delete=models.SET_NULL, null=True, blank=True)
+    bloque = models.ForeignKey('Bloque', on_delete=models.SET_NULL, null=True, blank=True)
     cama = models.ForeignKey('Cama', on_delete=models.SET_NULL, null=True, blank=True)
     SISTEMAS_CULTIVO = [
         ('HIDROPONICO', 'Hidroponía (Sustrato / Solución Recirculante)'),
@@ -48,7 +48,7 @@ class TareaProgramada(models.Model):
     fecha_completada = models.DateTimeField(null=True, blank=True)
     duracion_tarea = models.DurationField(null=True, blank=True)
     invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
-    zona = models.ForeignKey('Zona', on_delete=models.SET_NULL, null=True, blank=True)
+    bloque = models.ForeignKey('Bloque', on_delete=models.SET_NULL, null=True, blank=True)
     cama = models.ForeignKey('Cama', on_delete=models.SET_NULL, null=True, blank=True)
     
 
@@ -58,27 +58,28 @@ class TareaProgramada(models.Model):
 class Invernadero(models.Model):
     nombre = models.CharField(max_length=100)
     ubicacion = models.CharField(max_length=200)
-    capacidad = models.IntegerField()
+    cantidad_bloques = models.IntegerField()
 
     def __str__(self):
         return self.nombre
 
-class Zona(models.Model):
+class Bloque(models.Model):
     nombre = models.CharField(max_length=100)
     invernadero = models.ForeignKey(Invernadero, on_delete=models.CASCADE)
     descripcion = models.TextField(blank=True, null=True)
+    cantidad_camas = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.nombre} - {self.invernadero.nombre}" 
     
 class Cama(models.Model):
-    numero_cama = models.IntegerField()
-    zona = models.ForeignKey(Zona, on_delete=models.CASCADE)
+    numero_cama = models.IntegerField(default=0)
+    bloque = models.ForeignKey(Bloque, on_delete=models.CASCADE, null=True)
     descripcion = models.TextField(blank=True, null=True)
     disponibilidad = models.CharField(max_length=50, choices=[('DISPONIBLE', 'Disponible'), ('OCUPADA', 'Ocupada')], default='DISPONIBLE')
 
     def __str__(self):
-        return f"{self.numero_cama} - {self.zona.nombre}"
+        return f"{self.numero_cama} - {self.bloque.nombre}"
     
 class Insumo(models.Model):
     nombre = models.ForeignKey('CatalogoInsumos', on_delete=models.CASCADE, related_name='insumos')

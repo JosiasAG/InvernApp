@@ -1,8 +1,8 @@
 from django.utils import timezone
 
 from django.shortcuts import render
-from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Zona, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
-from .forms import formulario_nuevo_lote
+from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Bloque, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
+from .forms import formulario_nuevo_lote, formulario_cultivo, formulario_invernadero
 
 def home(request):
     return render(request, 'base.html')
@@ -58,5 +58,23 @@ def crear_tarea(request):
         nueva_tarea.save()
         return render (request, "crear_lote.html", {
             'form': formulario_nuevo_lote}) 
-
     
+def registrar_planta(request):
+    if request.method=="GET":     
+        return render (request, 'registrar_planta.html', {
+            'form' : formulario_cultivo
+        })
+    elif request.method=="POST":
+        return render (request, 'registrar_planta.html', {
+            'form' : formulario_cultivo
+        })
+
+def registrar_invernadero(request):
+    if request.method=="GET":    
+        return render (request, 'registrar_invernadero.html', {
+            'form' : formulario_invernadero
+        })
+    elif request.method=="POST":
+            return render (request, 'registrar_invernadero.html', {
+            'form' : formulario_invernadero
+        })

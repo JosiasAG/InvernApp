@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Insumo, LoteCultivo, TareaProgramada, UsoInsumo
+from .models import Insumo, LoteCultivo, TareaProgramada, UsoInsumo, Invernadero, Bloque, Cama
 from datetime import timedelta, timezone
 from usuarios.models import AsistenciaDiaria
 
@@ -16,7 +16,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 tipo_tarea='RIEGO',
                 fecha_programada=fecha_tarea,
                 invernadero=instance.invernadero,
-                zona=instance.zona,
+                bloque=instance.bloque,
                 cama=instance.cama,
             )
 
@@ -27,7 +27,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 tipo_tarea='PODA',
                 fecha_programada=fecha_tarea,
                 invernadero=instance.invernadero,
-                zona=instance.zona,
+                bloque=instance.bloque,
                 cama=instance.cama,
             )
 
@@ -38,7 +38,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 tipo_tarea='FERTILIZACION',
                 fecha_programada=fecha_tarea,
                 invernadero=instance.invernadero,
-                zona=instance.zona,
+                bloque=instance.bloque,
                 cama=instance.cama,
             )
 
@@ -49,7 +49,7 @@ def crear_calendario_lote(sender, instance, created, **kwargs):
                 tipo_tarea='COSECHA',
                 fecha_programada=fecha_tarea,
                 invernadero=instance.invernadero,
-                zona=instance.zona,
+                bloque=instance.bloque,
                 cama=instance.cama,
             )
 
@@ -107,4 +107,29 @@ def calcular_linea_tiempo_y_descuento(sender, instance, created, **kwargs):
                 fecha_completada=ahora,
                 duracion_tarea=duracion
             )
+
+@receiver(post_save, sender=Invernadero)
+def establecer_invernadero(sender, instance, created, **kwargs):
+    cantidad_bloques=instance.cantidad_bloques
+    if created:
+        for i in "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"[:cantidad_bloques]:                
+                Bloque.objects.create(
+                    nombre = "Bloque " + i,
+                    invernadero = instance,
+                    descripcion = "",
+                    cantidad_camas = 0,
+                )
+
+@receiver(post_save, sender=Bloque)
+def establecer_bloque(sender, instance, created, **Kwargs):
+    cantidad_camas=instance.cantidad_camas
+    for i in range(0, cantidad_camas+1):                
+                Cama.objects.create(
+                    numero_cama = i,
+                    bloque = instance,
+                    descripcion = "",
+                    disponibilidad = 'DISPONIBLE'
+                )
+
+
 
