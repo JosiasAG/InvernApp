@@ -1,8 +1,8 @@
 from django.utils import timezone
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Bloque, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
-from .forms import formulario_nuevo_lote, formulario_cultivo, formulario_invernadero
+from .forms import formulario_nuevo_lote, formulario_cultivo, formulario_invernadero, formulario_bloque
 
 def home(request):
     return render(request, 'base.html')
@@ -54,8 +54,7 @@ def crear_tarea(request):
             'form': formulario_nuevo_lote}) 
     elif request.method=="POST":
         form = formulario_nuevo_lote(request.POST)
-        nueva_tarea = form.save(commit=False)
-        nueva_tarea.save()
+        form.save(commit=False)
         return render (request, "crear_lote.html", {
             'form': formulario_nuevo_lote}) 
     
@@ -70,11 +69,49 @@ def registrar_planta(request):
         })
 
 def registrar_invernadero(request):
-    if request.method=="GET":    
-        return render (request, 'registrar_invernadero.html', {
-            'form' : formulario_invernadero
+    if request.method == "GET":
+
+        return render(request, 'registrar_invernadero.html', {
+            'form': formulario_invernadero()
+        }) 
+    elif request.method == "POST" and 'guardar_invernadero':
+        form = formulario_invernadero(request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'registrar_bloque.html')
+        
+from django.shortcuts import render, redirect
+from .models import Invernadero, Bloque
+from .forms import formulario_bloque # Asegúrate de importar tu formulario
+
+def registrar_bloque(request):
+    if request.method == "POST":
+        if 'abrir_invernadero' in request.POST:
+            id_invernadero = request.POST.get('invernadero')
+            form_con_seleccion = formulario_bloque(request.POST) 
+            bloques_asociados = None
+            if id_invernadero:
+                invernadero_objeto = Invernadero.objects.get(id=id_invernadero)
+                bloques_asociados = invernadero_objeto.bloques.all()
+            return render(request, 'registrar_bloque.html', {
+                'form': form_con_seleccion,
+                'bloques': bloques_asociados,
+            })
+        elif 'guardar_bloque' in request.POST:
+            bloque_ids = request.POST.getlist('bloque_ids')
+            for b_id in bloque_ids:
+                cantidad_camas = request.POST.get(f'camas_{b_id}')
+                descripcion = request.POST.get(f'descripcion_{b_id}') # Agregado para guardar la descripción
+                if cantidad_camas:
+                    bloque = Bloque.objects.get(id=b_id)
+                    bloque.cantidad_camas = int(cantidad_camas)
+                    bloque.descripcion = descripcion # Lo guardamos en el modelo
+                    bloque.save()
+            return redirect('home')
+    else:
+        return render(request, 'registrar_bloque.html', {
+            'form': formulario_bloque(),
         })
-    elif request.method=="POST":
-            return render (request, 'registrar_invernadero.html', {
-            'form' : formulario_invernadero
-        })
+
+def crear_cultivo(request):
+    return render (request, '')

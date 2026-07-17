@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
+
 
 class Cultivo(models.Model):
     nombre = models.CharField(max_length=100)
@@ -15,8 +17,9 @@ class Cultivo(models.Model):
     frecuencia_fertilizacion = models.IntegerField(default=0)
     frecuencia_fumigacion = models.IntegerField(default = 0)
     frecuencia_cosecha = models.IntegerField(default=0)
-    
-
+    fecha_trasplante = models.IntegerField(default=0)
+    inicio_tutorado = models.IntegerField(default=0)
+    dias_para_tutorado = models.IntegerField(default=0)
 
     def __str__(self):
         return self.nombre
@@ -40,8 +43,18 @@ class LoteCultivo(models.Model):
         return f"Lote {self.id_lote} - {self.plantilla.nombre}"
 
 class TareaProgramada(models.Model):
+    TIPO_ACTIVIDAD = [
+        ('SIEMBRA', 'Siembra'),
+        ('RIEGO', 'Riego'),
+        ('FUMIGACION', 'Fumigación'),
+        ('FERTILIZACION', 'Fertilización'),
+        ('PODA', 'Poda / Deshije'),
+        ('TUTORADO', 'Tutorado / Amarre'),
+        ('TRASPLANTE', 'Trasplante'),
+        ('COSECHA', 'Cosecha'),
+    ]
     lote_cultivo = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE)
-    tipo_tarea = models.CharField(max_length=50, choices=[('RIEGO', 'Riego'), ('PODA', 'Poda'), ('FERTILIZACION', 'Fertilización'), ('FUMIGACION', 'Fumigación'), ('COSECHA', 'Cosecha')])
+    tipo_tarea = models.CharField(max_length=50, choices=TIPO_ACTIVIDAD)
     fecha_programada = models.DateField()
     completada = models.BooleanField(default=False)
     insumo_utilizado = models.ForeignKey('Insumo', on_delete=models.SET_NULL, null=True, blank=True)
@@ -65,7 +78,7 @@ class Invernadero(models.Model):
 
 class Bloque(models.Model):
     nombre = models.CharField(max_length=100)
-    invernadero = models.ForeignKey(Invernadero, on_delete=models.CASCADE)
+    invernadero = models.ForeignKey(Invernadero, on_delete=models.CASCADE, related_name="bloques")
     descripcion = models.TextField(blank=True, null=True)
     cantidad_camas = models.IntegerField(default=0)
 
@@ -82,7 +95,7 @@ class Cama(models.Model):
         return f"{self.numero_cama} - {self.bloque.nombre}"
     
 class Insumo(models.Model):
-    nombre = models.ForeignKey('CatalogoInsumos', on_delete=models.CASCADE, related_name='insumos')
+    nombre = models.ForeignKey('CatalogoInsumos', on_delete=models.CASCADE)
     lote = models.CharField(max_length=100, blank=True, null=True)
     proveedor = models.ForeignKey('Proveedor', on_delete=models.CASCADE, related_name='catalogo_insumos', default=None, null=True, blank=True)
     tipo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')], default='-----')
@@ -92,7 +105,7 @@ class Insumo(models.Model):
     
 
     def __str__(self):
-        return self.nombre
+        return self.nombre.nombre
     
 class UsoInsumo(models.Model):
     cultivo = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
@@ -122,3 +135,20 @@ class CatalogoInsumos(models.Model):
     def __str__(self):
         return f"{self.nombre}"
     
+class Fumigacion(models.Model):
+    bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE, related_name='fumigaciones')
+    fecha_aplicacion = models.DateTimeField(default=timezone.now())
+    compuesto_aplicado = models.ForeignKey(Insumo, on_delete=models.CASCADE)
+    # dosis = models.IntegerField(default=0, help_text="expresado en gramos o mililitros")
+    gasto_agua = models.FloatField(help_text="Litros de agua totales preparados")
+    intervalo_seguridad = models.IntegerField(
+        help_text="Días obligatorios que deben pasar antes de poder cosechar"
+    )
+    plaga_objetivo = models.CharField(max_length=100)
+    aplicador = models.CharField(max_length=100)
+    observaciones = models.TextField(blank=True)
+
+    @property
+    def periodo_espera_activo(self):
+        fecha_limite = self.fecha_aplicacion.date() + models.fields.DateTimeField.timedelta(days=self.intervalo_seguridad)
+        return timezone.now() < fecha_limite

@@ -22,3 +22,7 @@ class formulario_invernadero(ModelForm):
         model = Invernadero
         fields = '__all__'
 
+class formulario_bloque(ModelForm):
+    class Meta:
+        model = Bloque
+        fields = '__all__'

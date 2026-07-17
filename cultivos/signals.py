@@ -123,7 +123,7 @@ def establecer_invernadero(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Bloque)
 def establecer_bloque(sender, instance, created, **Kwargs):
     cantidad_camas=instance.cantidad_camas
-    for i in range(0, cantidad_camas+1):                
+    for i in range(1, cantidad_camas+1):                
                 Cama.objects.create(
                     numero_cama = i,
                     bloque = instance,

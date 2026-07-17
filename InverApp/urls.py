@@ -10,4 +10,5 @@ urlpatterns = [
     path('crear_tarea/', views.crear_tarea, name='crear_tarea'),
     path('registrar_planta/', views.registrar_planta, name = 'registrar_planta'),
     path('registrar_invernadero/', views.registrar_invernadero, name='registrar_invernadero'),
+    path('registrar_bloque/', views.registrar_bloque, name="registrar_bloque")
 ]

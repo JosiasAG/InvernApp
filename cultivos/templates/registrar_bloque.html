@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Registrar Bloque</h1>
+
+
+<form action="/registrar_bloque/" method="POST">
+    {% csrf_token %}
+    {{form.invernadero}}
+
+    <button type="submit" name="abrir_invernadero">
+        Desplegar invernadero
+    </button>
+</form>
+
+<div>
+    <form action="/registrar_bloque/" method="POST">
+        {% csrf_token %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Bloque</th>
+                    <th>Número de Camas</th>
+                    <th>Descripción Opcional</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bloque in bloques %}
+                <tr>
+                    <td>
+                        <p>{{ bloque.nombre }}</p>
+                        <input type="hidden" name="bloque_ids" value="{{ bloque.id }}">
+                    </td>
+                    <td>
+                        <input type="number" name="camas_{{ bloque.id }}" min="1" required>
+                    </td>
+                    <td>
+                        <input type="text" name="descripcion_{{ bloque.id }}">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+        <button type="submit" name="guardar_bloque">Guardar Configuración</button>
+    </form>
+</div>
+
+{% endblock %}
