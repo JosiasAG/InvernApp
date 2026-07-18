@@ -49,15 +49,21 @@ def detalle_tarea(request, tarea_id):
     })
 
 def crear_tarea(request):
-    if request.method == "GET":
-        return render (request, "crear_lote.html", {
-            'form': formulario_nuevo_lote}) 
-    elif request.method=="POST":
-        form = formulario_nuevo_lote(request.POST)
-        form.save(commit=False)
-        return render (request, "crear_lote.html", {
-            'form': formulario_nuevo_lote}) 
-    
+    if request.method == "POST":
+        if 'seleccionar_tipo_siembra' in request.POST:
+            tipo_siembra = request.POST.get('tipo_sustrato_sugerido')
+            form_con_seleccion = formulario_bloque(request.POST) 
+            bloques_asociados = None
+            return render(request, 'crear_lote.html', {
+                'form': formulario_cultivo,
+                })
+        else:
+            form = formulario_nuevo_lote(request.POST)
+            form.save()
+            return render (request, "crear_lote.html", {
+                'form': formulario_nuevo_lote}) 
+    return render (request, "crear_lote.html", {
+            'form': LoteCultivo}) 
 def registrar_planta(request):
     if request.method=="GET":     
         return render (request, 'registrar_planta.html', {

@@ -8,53 +8,60 @@ class Cultivo(models.Model):
     nombre = models.CharField(max_length=100)
     dias_para_primer_riego = models.IntegerField()
     dias_para_primera_poda = models.IntegerField()
-    dias_para_primer_fertilizacion = models.IntegerField(default=0) 
-    dias_para_primer_fumigacion = models.IntegerField()
+    dias_para_primer_fertilizacion = models.IntegerField() 
     dias_para_inicio_cosecha = models.IntegerField()
     ciclo_de_vida_total = models.IntegerField()
-    frecuencia_riego = models.IntegerField(default=0) 
-    frecuencia_poda = models.IntegerField(default=0) 
-    frecuencia_fertilizacion = models.IntegerField(default=0)
-    frecuencia_fumigacion = models.IntegerField(default = 0)
-    frecuencia_cosecha = models.IntegerField(default=0)
-    fecha_trasplante = models.IntegerField(default=0)
-    inicio_tutorado = models.IntegerField(default=0)
-    dias_para_tutorado = models.IntegerField(default=0)
+    frecuencia_riego = models.IntegerField() 
+    frecuencia_poda = models.IntegerField() 
+    frecuencia_fertilizacion = models.IntegerField()
+    frecuencia_cosecha = models.IntegerField()
+    fecha_trasplante = models.IntegerField()
+    inicio_tutorado = models.IntegerField()
+    dias_para_tutorado = models.IntegerField()
+    ph_optimo_min = models.IntegerField()
+    ph_optimo_max = models.IntegerField()
+    conductividad_electrica_optima = models.IntegerField()
+    tipo_sustrato_sugerido = models.CharField(choices=[
+        ('FIBRA_COCO', 'Fibra de coco'), 
+        ('PERLITA', 'Perlita'), 
+        ('TEZONTLE', 'Tezontle'), 
+        ('VERMICULITA', 'Vermiculita'),
+        ('LANA_ROCA', 'Lana de roca'),
+        ('ARCILLA_EXPANDIDA', 'Arcilla expandida'),
+        ('TURBA', 'Turba'),
+        ('RAIZ_FLOTANTE', 'Sin sustrato'),
+        ])
+    tiempo_riego_minutos = models.IntegerField()
+    tiempo_espera_minutos = models.IntegerField()
+
 
     def __str__(self):
         return self.nombre
 
 class LoteCultivo(models.Model):
     id_lote = models.CharField(max_length=100)
-    plantilla = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
+    plantilla = models.ForeignKey(Cultivo, on_delete=models.CASCADE, related_name="plantilla")
     fecha_plantacion = models.DateField()
-    estado = models.CharField(max_length=50, choices=[('CRECIMIENTO', 'En crecimiento'), ('COSECHA', 'En cosecha'), ('TERMINADO', 'Terminado')], default='CRECIMIENTO')
-    invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
-    bloque = models.ForeignKey('Bloque', on_delete=models.SET_NULL, null=True, blank=True)
-    cama = models.ForeignKey('Cama', on_delete=models.SET_NULL, null=True, blank=True)
-    SISTEMAS_CULTIVO = [
-        ('HIDROPONICO', 'Hidroponía (Sustrato / Solución Recirculante)'),
-        ('TRADICIONAL', 'Tradicional (Suelo / Tierra)'),
-        ('MIXTO', 'Apto para ambos (Hidroponía y Tradicional)'),
+    invernadero = models.ForeignKey('Invernadero', on_delete=models.CASCADE)
+    bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE)
+    cama = models.ForeignKey('Cama', on_delete=models.CASCADE)
+    
+    TIPO_ACTIVIDAD = [
+    ('SIEMBRA', 'Siembra'),
+    ('RIEGO', 'Riego'),
+    ('FERTILIZACION', 'Fertilización'),
+    ('PODA', 'Poda'),
+    ('TUTORADO', 'Tutorado'),
+    ('TRASPLANTE', 'Trasplante'),
+    ('COSECHA', 'Cosecha'),
     ]
-    sistema_cultivo = models.CharField(max_length=20, choices=SISTEMAS_CULTIVO, default='TRADICIONAL')
-
+    actividad = models.CharField(choices=TIPO_ACTIVIDAD)
     def __str__(self):
-        return f"Lote {self.id_lote} - {self.plantilla.nombre}"
+        return f"Lote {self.id_lote} + {self.plantilla.nombre}"
 
 class TareaProgramada(models.Model):
-    TIPO_ACTIVIDAD = [
-        ('SIEMBRA', 'Siembra'),
-        ('RIEGO', 'Riego'),
-        ('FUMIGACION', 'Fumigación'),
-        ('FERTILIZACION', 'Fertilización'),
-        ('PODA', 'Poda / Deshije'),
-        ('TUTORADO', 'Tutorado / Amarre'),
-        ('TRASPLANTE', 'Trasplante'),
-        ('COSECHA', 'Cosecha'),
-    ]
-    lote_cultivo = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE)
-    tipo_tarea = models.CharField(max_length=50, choices=TIPO_ACTIVIDAD)
+    lote_cultivo = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE, related_name="lote_cultivo")
+    tipo_tarea = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE, related_name="tipo_tarea")
     fecha_programada = models.DateField()
     completada = models.BooleanField(default=False)
     insumo_utilizado = models.ForeignKey('Insumo', on_delete=models.SET_NULL, null=True, blank=True)
@@ -126,7 +133,7 @@ class Proveedor(models.Model):
         return self.nombre
     
 class CatalogoInsumos(models.Model):
-    tipo_insumo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')])
+    tipo_insumo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')])
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
     unidad_medida = models.CharField(max_length=50, choices=[('KG', 'Kilogramos'), ('L', 'Litros'), ('UNIDAD', 'Unidad'), ('BULTOS', 'Bultos')])
@@ -139,7 +146,7 @@ class Fumigacion(models.Model):
     bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE, related_name='fumigaciones')
     fecha_aplicacion = models.DateTimeField(default=timezone.now())
     compuesto_aplicado = models.ForeignKey(Insumo, on_delete=models.CASCADE)
-    # dosis = models.IntegerField(default=0, help_text="expresado en gramos o mililitros")
+    dosis = models.IntegerField(default=0, help_text="expresado en gramos o mililitros")
     gasto_agua = models.FloatField(help_text="Litros de agua totales preparados")
     intervalo_seguridad = models.IntegerField(
         help_text="Días obligatorios que deben pasar antes de poder cosechar"
@@ -152,3 +159,16 @@ class Fumigacion(models.Model):
     def periodo_espera_activo(self):
         fecha_limite = self.fecha_aplicacion.date() + models.fields.DateTimeField.timedelta(days=self.intervalo_seguridad)
         return timezone.now() < fecha_limite
+
+class CatalogoPlagas(models.Model):
+    nombre_comun = models.CharField(max_length=100)
+    nombre_cientifico = models.CharField(max_length=100, blank=True)
+    categoria = models.CharField(max_length=80, choices=[('INSECTO', 'insecto'), ('ACARO', 'ácaro'), ('HONGO', 'hongo'), ('BACTERIA', 'bacteria'), ('VIRUS', 'virus')])
+    descripcion_sintomas = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.nombre_comun}"
+    
+class CatalogoAgroquimicos(models.Model):
+    nombre = models.CharField(max_length=50)
+    
