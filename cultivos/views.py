@@ -2,7 +2,7 @@ from django.utils import timezone
 
 from django.shortcuts import render, redirect
 from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Bloque, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
-from .forms import formulario_nuevo_lote, formulario_cultivo, formulario_invernadero, formulario_bloque
+from .forms import formulario_nuevo_lote, formulario_cultivo_tierra, formulario_cultivo_hidroponia, formulario_cultivo_mixto , formulario_invernadero, formulario_bloque, formulario_elegir_siembra
 
 def home(request):
     return render(request, 'base.html')
@@ -49,29 +49,47 @@ def detalle_tarea(request, tarea_id):
     })
 
 def crear_tarea(request):
-    if request.method == "POST":
+    if request.method=="GET":
+        return render (request, "crear_lote.html", {
+            'form': formulario_nuevo_lote}) 
+
+    elif request.method == "POST":
         if 'seleccionar_tipo_siembra' in request.POST:
-            tipo_siembra = request.POST.get('tipo_sustrato_sugerido')
-            form_con_seleccion = formulario_bloque(request.POST) 
-            bloques_asociados = None
+            tipo_siembra = request.POST.get('tipo_siembra')
             return render(request, 'crear_lote.html', {
-                'form': formulario_cultivo,
+                'form': formulario_cultivo_mixto,
+                'siembra': tipo_siembra
                 })
         else:
             form = formulario_nuevo_lote(request.POST)
             form.save()
             return render (request, "crear_lote.html", {
                 'form': formulario_nuevo_lote}) 
-    return render (request, "crear_lote.html", {
-            'form': LoteCultivo}) 
+    
+
 def registrar_planta(request):
-    if request.method=="GET":     
+    if request.method=="POST":
+        if 'elegir_siembra' in request.POST:
+            tipo_siembra = request.POST
+
+            if tipo_siembra == 'TIERRA':
+                return render (request, 'registrar_planta.html', {
+                    'form_elegir' : formulario_cultivo_tierra,
+                    'siembra_elegida': tipo_siembra
+                })
+            elif tipo_siembra == 'HIDROPONIA':
+                return render (request, 'registrar_planta.html', {
+                    'form_elegir' : formulario_cultivo_hidroponia,
+                    'siembra_elegida': tipo_siembra
+                })
+            else:
+                return render (request, 'registrar_planta.html', {
+                    'form_elegir' : formulario_cultivo_mixto,
+                    'siembra_elegida': tipo_siembra
+                })
+    else:
         return render (request, 'registrar_planta.html', {
-            'form' : formulario_cultivo
-        })
-    elif request.method=="POST":
-        return render (request, 'registrar_planta.html', {
-            'form' : formulario_cultivo
+            'form' : formulario_elegir_siembra
         })
 
 def registrar_invernadero(request):
@@ -85,10 +103,6 @@ def registrar_invernadero(request):
         if form.is_valid():
             form.save()
             return render(request, 'registrar_bloque.html')
-        
-from django.shortcuts import render, redirect
-from .models import Invernadero, Bloque
-from .forms import formulario_bloque # Asegúrate de importar tu formulario
 
 def registrar_bloque(request):
     if request.method == "POST":

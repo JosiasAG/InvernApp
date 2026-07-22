@@ -5,22 +5,47 @@ from django.utils import timezone
 
 
 class Cultivo(models.Model):
+    tipo_cultivo = models.CharField(choices=[
+        ('TIERRA', 'Tierra'),
+        ('HIDROPONIA', 'Hidroponia'),
+        ('MIXTO', 'Tierra e hidroponia')
+
+    ])
+    # parámetros compartidos
     nombre = models.CharField(max_length=100)
-    dias_para_primer_riego = models.IntegerField()
     dias_para_primera_poda = models.IntegerField()
-    dias_para_primer_fertilizacion = models.IntegerField() 
     dias_para_inicio_cosecha = models.IntegerField()
     ciclo_de_vida_total = models.IntegerField()
-    frecuencia_riego = models.IntegerField() 
     frecuencia_poda = models.IntegerField() 
-    frecuencia_fertilizacion = models.IntegerField()
     frecuencia_cosecha = models.IntegerField()
     fecha_trasplante = models.IntegerField()
     inicio_tutorado = models.IntegerField()
     dias_para_tutorado = models.IntegerField()
+    
+    #parametros exclusivos de tierra
+    dias_para_primer_riego = models.IntegerField()
+    frecuencia_riego = models.IntegerField() 
+    dias_para_primer_fertilizacion = models.IntegerField()
+    frecuencia_fertilizacion = models.IntegerField()
+
+    #parametros exclusivos de hidroponia
     ph_optimo_min = models.IntegerField()
     ph_optimo_max = models.IntegerField()
     conductividad_electrica_optima = models.IntegerField()
+    tiempo_riego_minutos = models.IntegerField()
+    tiempo_espera_minutos = models.IntegerField()
+
+
+    def __str__(self):
+        return self.nombre
+
+class LoteCultivo(models.Model):
+    id_lote = models.CharField(max_length=100)
+    plantilla = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
+    fecha_plantacion = models.DateField()
+    invernadero = models.ForeignKey('Invernadero', on_delete=models.CASCADE)
+    bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE)
+    cama = models.ForeignKey('Cama', on_delete=models.CASCADE)
     tipo_sustrato_sugerido = models.CharField(choices=[
         ('FIBRA_COCO', 'Fibra de coco'), 
         ('PERLITA', 'Perlita'), 
@@ -31,21 +56,6 @@ class Cultivo(models.Model):
         ('TURBA', 'Turba'),
         ('RAIZ_FLOTANTE', 'Sin sustrato'),
         ])
-    tiempo_riego_minutos = models.IntegerField()
-    tiempo_espera_minutos = models.IntegerField()
-
-
-    def __str__(self):
-        return self.nombre
-
-class LoteCultivo(models.Model):
-    id_lote = models.CharField(max_length=100)
-    plantilla = models.ForeignKey(Cultivo, on_delete=models.CASCADE, related_name="plantilla")
-    fecha_plantacion = models.DateField()
-    invernadero = models.ForeignKey('Invernadero', on_delete=models.CASCADE)
-    bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE)
-    cama = models.ForeignKey('Cama', on_delete=models.CASCADE)
-    
     TIPO_ACTIVIDAD = [
     ('SIEMBRA', 'Siembra'),
     ('RIEGO', 'Riego'),
@@ -105,7 +115,7 @@ class Insumo(models.Model):
     nombre = models.ForeignKey('CatalogoInsumos', on_delete=models.CASCADE)
     lote = models.CharField(max_length=100, blank=True, null=True)
     proveedor = models.ForeignKey('Proveedor', on_delete=models.CASCADE, related_name='catalogo_insumos', default=None, null=True, blank=True)
-    tipo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('PLAGUICIDA', 'Plaguicida'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')], default='-----')
+    tipo = models.CharField(max_length=50, choices=[('FERTILIZANTE', 'Fertilizante'), ('SEMILLA', 'Semilla'), ('SUSTRATO', 'Sustrato'), ('OTRO', 'Otro')], default='-----')
     descripcion = models.TextField(blank=True, null=True)
     cantidad_disponible = models.FloatField()
     cantidad_minima = models.FloatField(default=0.0)
