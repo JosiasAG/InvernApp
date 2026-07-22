@@ -2,17 +2,10 @@
 
 {% block content %}
 <h1>Crear nuevo lote de producción</h1>
-<form action="/crear_tarea/" method="POST">
-    {% csrf_token %}
-    {{form.tipo_siembra}}
-    <button type="submit" name="seleccionar_tipo_siembra">
-        Guardar
-    </button>
-</form>
 
 <form action="/crear_tarea/" method="POST">
     {% csrf_token %}
-    {{siembra}}
+    {{form}}
     <button type="submit" name="cargar_cultivo">
         Guardar
     </button>

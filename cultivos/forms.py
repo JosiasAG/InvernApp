@@ -22,7 +22,6 @@ class formulario_cultivo_tierra(ModelForm):
     class Meta:
         model = Cultivo
         exclude = [
-            'tipo_cultivo',
             'ph_optimo_min', 
             'ph_optimo_max', 
             'conductividad_electrica_optima', 
@@ -30,13 +29,10 @@ class formulario_cultivo_tierra(ModelForm):
             'tiempo_espera_minutos'
         ]
 
-    widgets = {
-            'tipo_cultivo': forms.HiddenInput(),
-        }
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['tipo_cultivo'].initial = 'TIERRA'
+        self.fields['tipo_cultivo'].widget = forms.HiddenInput()
 
 class formulario_cultivo_hidroponia(ModelForm):
     class Meta:
@@ -47,11 +43,21 @@ class formulario_cultivo_hidroponia(ModelForm):
             'dias_para_primer_fertilizacion',
             'frecuencia_fertilizacion'
         ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tipo_cultivo'].initial = 'HIDROPONIA'
+        self.fields['tipo_cultivo'].widget = forms.HiddenInput()
 
 class formulario_cultivo_mixto(ModelForm):
     class Meta:
         model = Cultivo
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tipo_cultivo'].initial = 'TIERRA'
+        self.fields['tipo_cultivo'].widget = forms.HiddenInput()
 
 class formulario_invernadero(ModelForm):
     class Meta:

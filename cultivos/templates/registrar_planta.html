@@ -2,7 +2,6 @@
 
 {% block content %}
 <h1>Registrar planta</h1>
-{{tipo_siembra}}
 <form action="/registrar_planta/" method="POST">
     {% csrf_token %}
     {{form}}
@@ -13,8 +12,9 @@
 
 <form action="/registrar_planta/" method="POST">
     {% csrf_token %}
+    {{tipo_siembra}}
     {{form_elegir}}
-     <button type="submit" name="guardar_todo">
+     <button type="submit" name="guardar_cultivo">
         Buscar
      </button>
 

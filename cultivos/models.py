@@ -56,16 +56,7 @@ class LoteCultivo(models.Model):
         ('TURBA', 'Turba'),
         ('RAIZ_FLOTANTE', 'Sin sustrato'),
         ])
-    TIPO_ACTIVIDAD = [
-    ('SIEMBRA', 'Siembra'),
-    ('RIEGO', 'Riego'),
-    ('FERTILIZACION', 'Fertilización'),
-    ('PODA', 'Poda'),
-    ('TUTORADO', 'Tutorado'),
-    ('TRASPLANTE', 'Trasplante'),
-    ('COSECHA', 'Cosecha'),
-    ]
-    actividad = models.CharField(choices=TIPO_ACTIVIDAD)
+
     def __str__(self):
         return f"Lote {self.id_lote} + {self.plantilla.nombre}"
 

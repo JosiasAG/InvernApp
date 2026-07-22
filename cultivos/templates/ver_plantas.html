@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Ver plantas</h1>
+{% for cultivo in form %}
+    <p>{{cultivo.nombre|title}}</p>
+    <p><strong>Sistema:</strong> {{ cultivo.tipo_cultivo }}</p>
+    <p><strong>Ciclo total:</strong> {{ cultivo.ciclo_de_vida_total }} días</p>
+{% endfor %}
+
+{% endblock %}

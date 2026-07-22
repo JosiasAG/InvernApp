@@ -49,11 +49,7 @@ def detalle_tarea(request, tarea_id):
     })
 
 def crear_tarea(request):
-    if request.method=="GET":
-        return render (request, "crear_lote.html", {
-            'form': formulario_nuevo_lote}) 
-
-    elif request.method == "POST":
+    if request.method == "POST":
         if 'seleccionar_tipo_siembra' in request.POST:
             tipo_siembra = request.POST.get('tipo_siembra')
             return render(request, 'crear_lote.html', {
@@ -65,31 +61,60 @@ def crear_tarea(request):
             form.save()
             return render (request, "crear_lote.html", {
                 'form': formulario_nuevo_lote}) 
-    
+    else:
+        return render (request, "crear_lote.html", {
+            'form': formulario_nuevo_lote}) 
 
 def registrar_planta(request):
-    if request.method=="POST":
+    if request.method == "POST":
+        tipo_siembra = request.POST.get('tipo_cultivo')
+
         if 'elegir_siembra' in request.POST:
-            tipo_siembra = request.POST
+            form_elegir = None
+            
+            if tipo_siembra == 'TIERRA':
+                form_elegir = formulario_cultivo_tierra()
+            elif tipo_siembra == 'HIDROPONIA':
+                form_elegir = formulario_cultivo_hidroponia()
+            elif tipo_siembra == 'MIXTO':
+                form_elegir = formulario_cultivo_mixto()
+
+            return render(request, 'registrar_planta.html', {
+                'form': formulario_elegir_siembra(initial={'tipo_cultivo': tipo_siembra}),
+                'form_elegir': form_elegir,
+                'tipo_siembra': tipo_siembra
+            })
+
+        elif 'guardar_cultivo' in request.POST:
+            form_elegir = None
 
             if tipo_siembra == 'TIERRA':
-                return render (request, 'registrar_planta.html', {
-                    'form_elegir' : formulario_cultivo_tierra,
-                    'siembra_elegida': tipo_siembra
-                })
+                form_elegir = formulario_cultivo_tierra(request.POST)
             elif tipo_siembra == 'HIDROPONIA':
-                return render (request, 'registrar_planta.html', {
-                    'form_elegir' : formulario_cultivo_hidroponia,
-                    'siembra_elegida': tipo_siembra
-                })
-            else:
-                return render (request, 'registrar_planta.html', {
-                    'form_elegir' : formulario_cultivo_mixto,
-                    'siembra_elegida': tipo_siembra
-                })
-    else:
-        return render (request, 'registrar_planta.html', {
-            'form' : formulario_elegir_siembra
+                form_elegir = formulario_cultivo_hidroponia(request.POST)
+            elif tipo_siembra == 'MIXTO':
+                form_elegir = formulario_cultivo_mixto(request.POST)
+
+            if form_elegir and form_elegir.is_valid():
+                form_elegir.save()
+                return redirect('ver_plantas')
+            
+            # Si no fue válido, recargas devolviendo los errores
+            return render(request, 'registrar_planta.html', {
+                'form': formulario_elegir_siembra(initial={'tipo_cultivo': tipo_siembra}),
+                'form_elegir': form_elegir,
+                'tipo_siembra': tipo_siembra
+            })
+
+    return render(request, 'registrar_planta.html', {
+        'form': formulario_elegir_siembra()
+    })
+
+def ver_plantas(request):
+
+    form = Cultivo.objects.all()
+    return render(request, 'ver_plantas.html', {
+        'form' : form
         })
 
 def registrar_invernadero(request):
