@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.shortcuts import render, redirect
 from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Bloque, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
 from .forms import formulario_nuevo_lote, formulario_cultivo_tierra, formulario_cultivo_hidroponia, formulario_cultivo_mixto , formulario_invernadero, formulario_bloque, formulario_elegir_siembra
+from django.contrib import messages
 
 def home(request):
     return render(request, 'base.html')
@@ -49,21 +50,21 @@ def detalle_tarea(request, tarea_id):
     })
 
 def crear_tarea(request):
-    if request.method == "POST":
-        if 'seleccionar_tipo_siembra' in request.POST:
-            tipo_siembra = request.POST.get('tipo_siembra')
-            return render(request, 'crear_lote.html', {
-                'form': formulario_cultivo_mixto,
-                'siembra': tipo_siembra
-                })
-        else:
-            form = formulario_nuevo_lote(request.POST)
+    if request.method == 'POST':
+        form = formulario_nuevo_lote(request.POST)
+        if form.is_valid():
             form.save()
-            return render (request, "crear_lote.html", {
-                'form': formulario_nuevo_lote}) 
+            return redirect('crear_lote.html')
+        else:
+            messages.error(request, "Por favor corrige los errores en el formulario.")
     else:
-        return render (request, "crear_lote.html", {
-            'form': formulario_nuevo_lote}) 
+        # En peticiones GET creamos el formulario vacío
+        form = formulario_nuevo_lote()
+
+    # Renderizamos la plantilla pasando el formulario
+    return render(request, 'crear_lote.html', {
+        'form': form
+    })
 
 def registrar_planta(request):
     if request.method == "POST":

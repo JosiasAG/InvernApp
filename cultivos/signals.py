@@ -6,52 +6,114 @@ from usuarios.models import AsistenciaDiaria
 
 @receiver(post_save, sender=LoteCultivo)
 def crear_calendario_lote(sender, instance, created, **kwargs):
-    if created:
+    if not created:
+        return
+    else:
         fecha_base = instance.fecha_plantacion
         plantilla = instance.plantilla
-        for i in range(0, plantilla.ciclo_de_vida_total, plantilla.frecuencia_riego):
-            fecha_tarea = fecha_base + timedelta(days=i)
+        ciclo_vida = plantilla.ciclo_vida_total
+        dias_trasplante = plantilla.dias_para_trasplante if plantilla.requiere_trasplante and plantilla.dias_para_trasplante else 0
+        fecha_trasplante = fecha_base + timedelta(days=dias_trasplante)
+        # tareas de riego
+        if plantilla.tipo_cultivo in ["TIERRA", 'MIXTO']:
+            for i in range(0, ciclo_vida, plantilla.frecuencia_riego):
+                fecha_tarea = fecha_base + timedelta(days=i)
+                TareaProgramada.objects.create(
+                    lote_cultivo=instance,
+                    tipo_tarea='RIEGO',
+                    fecha_programada=fecha_tarea,
+                    invernadero=instance.invernadero,
+                    bloque=instance.bloque,
+                    cama=instance.cama,
+                )
+        #tareas de poda
+        if plantilla.tipo_cultivo in ["TIERRA", 'MIXTO', 'HIDROPONIA'] and plantilla.requiere_poda:
+            for i in range(0, ciclo_vida, plantilla.frecuencia_poda):
+                fecha_tarea = fecha_trasplante + timedelta(days=i)
+                TareaProgramada.objects.create(
+                    lote_cultivo=instance,
+                    tipo_tarea='PODA',
+                    fecha_programada=fecha_tarea,
+                    invernadero=instance.invernadero,
+                    bloque=instance.bloque,
+                    cama=instance.cama,
+                )
+
+        # tareas de tutorado
+        if plantilla.tipo_cultivo in ["TIERRA", 'MIXTO', 'HIDROPONIA'] and plantilla.requiere_tutorado:
+            for i in range(0, ciclo_vida, plantilla.frecuencia_tutorado): 
+                fecha_tarea = fecha_trasplante + timedelta(days=i)
+                TareaProgramada.objects.create(
+                    lote_cultivo=instance,
+                    tipo_tarea='TUTORADO',
+                    fecha_programada=fecha_tarea,
+                    invernadero=instance.invernadero,
+                    bloque=instance.bloque,
+                    cama=instance.cama,
+                )
+
+        #traeas de fertilización
+        if plantilla.tipo_cultivo in ["TIERRA", 'MIXTO']:
+                for i in range(0, ciclo_vida, plantilla.frecuencia_fertilizacion): 
+                    fecha_tarea = fecha_trasplante + timedelta(days=i)
+                    TareaProgramada.objects.create(
+                        lote_cultivo=instance,
+                        tipo_tarea='FERTILIZACION',
+                        fecha_programada=fecha_tarea,
+                        invernadero=instance.invernadero,
+                        bloque=instance.bloque,
+                        cama=instance.cama,
+                    )
+
+        # tareas de monitoreo
+        if plantilla.tipo_cultivo in ["HIDROPONIA", "MIXTO"] and plantilla.frecuencia_monitoreo_ph_ce:
+            for i in range(0, ciclo_vida, plantilla.frecuencia_monitoreo_ph_ce):
+                fecha_tarea = fecha_trasplante + timedelta(days=i)
+                TareaProgramada.objects.create(
+                    lote_cultivo=instance,
+                    tipo_tarea='MONITOREO',
+                    fecha_programada=fecha_tarea,
+                    invernadero=instance.invernadero,
+                    bloque=instance.bloque,
+                    cama=instance.cama,
+                )
+
+        # tareas de trasplante (y orden de prepareación)
+        if plantilla.requiere_trasplante and plantilla.dias_para_trasplante:
+            dias_preparacion_antes_trasplante = 5
+            dias_preparacion = max(0, plantilla.dias_para_trasplante - dias_preparacion_antes_trasplante)
+            fecha_preparacion = fecha_base + timedelta(days=dias_preparacion)
+            
             TareaProgramada.objects.create(
                 lote_cultivo=instance,
-                tipo_tarea='RIEGO',
-                fecha_programada=fecha_tarea,
+                tipo_tarea='ACONDICIONAMIENTO',
+                fecha_programada=fecha_preparacion,
+                invernadero=instance.invernadero,
+                bloque=instance.bloque,
+                cama=instance.cama,
+            )
+            TareaProgramada.objects.create(
+                lote_cultivo=instance,
+                tipo_tarea='TRASPLANTE',
+                fecha_programada=fecha_trasplante,
                 invernadero=instance.invernadero,
                 bloque=instance.bloque,
                 cama=instance.cama,
             )
 
-        for i in range(plantilla.dias_para_primera_poda, plantilla.ciclo_de_vida_total, plantilla.frecuencia_poda):
-            fecha_tarea = fecha_base + timedelta(days=i)
-            TareaProgramada.objects.create(
-                lote_cultivo=instance,
-                tipo_tarea='PODA',
-                fecha_programada=fecha_tarea,
-                invernadero=instance.invernadero,
-                bloque=instance.bloque,
-                cama=instance.cama,
-            )
-
-        for i in range(plantilla.dias_para_primer_fertilizacion, plantilla.ciclo_de_vida_total, plantilla.frecuencia_fertilizacion):  # Suponiendo fertilización cada 30 días
-            fecha_tarea = fecha_base + timedelta(days=i)
-            TareaProgramada.objects.create(
-                lote_cultivo=instance,
-                tipo_tarea='FERTILIZACION',
-                fecha_programada=fecha_tarea,
-                invernadero=instance.invernadero,
-                bloque=instance.bloque,
-                cama=instance.cama,
-            )
-
-        for i in range(plantilla.dias_para_inicio_cosecha, plantilla.ciclo_de_vida_total, plantilla.frecuencia_cosecha):  # Suponiendo cosecha cada 30 días
-            fecha_tarea = fecha_base + timedelta(days=i)
-            TareaProgramada.objects.create(
-                lote_cultivo=instance,
-                tipo_tarea='COSECHA',
-                fecha_programada=fecha_tarea,
-                invernadero=instance.invernadero,
-                bloque=instance.bloque,
-                cama=instance.cama,
-            )
+        # tareas de cosecha
+        if plantilla.frecuencia_cosecha and plantilla.primera_cosecha:
+            primera_cosecha = plantilla.primera_cosecha
+            for i in range(primera_cosecha, ciclo_vida, plantilla.frecuencia_cosecha):
+                fecha_tarea = fecha_base + timedelta(days=i)
+                TareaProgramada.objects.create(
+                    lote_cultivo=instance,
+                    tipo_tarea='COSECHA',
+                    fecha_programada=fecha_tarea,
+                    invernadero=instance.invernadero,
+                    bloque=instance.bloque,
+                    cama=instance.cama,
+                )
 
 @receiver(post_save, sender=LoteCultivo)
 def actualizar_disponibilidad_cama(sender, instance, created, **kwargs):

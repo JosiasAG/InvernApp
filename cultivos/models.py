@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
 
 
 class Cultivo(models.Model):
@@ -11,30 +13,70 @@ class Cultivo(models.Model):
         ('MIXTO', 'Tierra e hidroponia')
 
     ])
-    # parámetros compartidos
+    # parámetros compartidos obligatorios para todas las plantas
     nombre = models.CharField(max_length=100)
-    dias_para_primera_poda = models.IntegerField()
-    dias_para_inicio_cosecha = models.IntegerField()
-    ciclo_de_vida_total = models.IntegerField()
-    frecuencia_poda = models.IntegerField() 
     frecuencia_cosecha = models.IntegerField()
-    fecha_trasplante = models.IntegerField()
-    inicio_tutorado = models.IntegerField()
-    dias_para_tutorado = models.IntegerField()
+    primera_cosecha = models.IntegerField()
+    ciclo_vida_total = models.IntegerField()
+    fecha_trasplante = models.IntegerField(null=True, blank=True)
+    requiere_trasplante = models.BooleanField(default=False)
+    dias_para_trasplante = models.IntegerField(null=True, blank=True)
+
+    # parámetros compartidos opcionales
+    requiere_poda = models.BooleanField(default=False)
+    frecuencia_poda = models.IntegerField(null=True, blank=True)
+    requiere_tutorado = models.BooleanField(default=False)
+    frecuencia_tutorado = models.IntegerField(null=True, blank=True)
     
     #parametros exclusivos de tierra
-    dias_para_primer_riego = models.IntegerField()
-    frecuencia_riego = models.IntegerField() 
-    dias_para_primer_fertilizacion = models.IntegerField()
-    frecuencia_fertilizacion = models.IntegerField()
+    frecuencia_riego = models.IntegerField(null=True, blank=True) 
+    frecuencia_fertilizacion = models.IntegerField(null=True, blank=True)
 
     #parametros exclusivos de hidroponia
-    ph_optimo_min = models.IntegerField()
-    ph_optimo_max = models.IntegerField()
-    conductividad_electrica_optima = models.IntegerField()
-    tiempo_riego_minutos = models.IntegerField()
-    tiempo_espera_minutos = models.IntegerField()
+    ph_optimo_min = models.IntegerField(null=True, blank=True)
+    ph_optimo_max = models.IntegerField(null=True, blank=True)
+    conductividad_electrica_optima = models.IntegerField(null=True, blank=True)
+    frecuencia_monitoreo_ph_ce = models.IntegerField(null=True, blank=True) 
+    
 
+    def clean(self):
+        super().clean()
+        errores = {}
+
+        if self.requiere_poda:
+            if self.frecuencia_poda is None:
+                errores['frecuencia_poda'] = 'Indica la frecuencia de poda.'
+
+        if self.requiere_tutorado:
+            if self.frecuencia_tutorado is None:
+                errores['frecuencia_tutorado'] = 'Indica la frecuencia de tutorado.'
+
+        if self.tipo_cultivo in ['TIERRA', 'MIXTO']:
+            if self.frecuencia_riego is None:
+                errores['frecuencia_riego'] = 'La frecuencia de riego es obligatoria para cultivos en tierra.'
+            if self.frecuencia_fertilizacion is None:
+                errores['frecuencia_fertilizacion'] = 'La frecuencia de fertilización es obligatoria.'
+
+        if self.tipo_cultivo in ['HIDROPONIA', 'MIXTO']:
+            if self.ph_optimo_min is None:
+                errores['ph_optimo_min'] = 'El pH mínimo es obligatorio para hidroponía.'
+            if self.ph_optimo_max is None:
+                errores['ph_optimo_max'] = 'El pH máximo es obligatorio para hidroponía.'
+            if self.conductividad_electrica_optima is None:
+                errores['conductividad_electrica_optima'] = 'La CE óptima es obligatoria para hidroponía.'
+            if self.frecuencia_monitoreo_ph_ce is None:
+                errores['frecuencia_monitoreo_ph_ce'] = 'La frecuencia de monitoreo de pH y CE es obligatoria para hidroponía.'
+
+        if self.ph_optimo_min and self.ph_optimo_max:
+            if self.ph_optimo_min >= self.ph_optimo_max:
+                errores['ph_optimo_min'] = 'El pH mínimo debe ser menor al pH máximo.'
+
+        if errores:
+            raise ValidationError(errores)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre
@@ -46,7 +88,7 @@ class LoteCultivo(models.Model):
     invernadero = models.ForeignKey('Invernadero', on_delete=models.CASCADE)
     bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE)
     cama = models.ForeignKey('Cama', on_delete=models.CASCADE)
-    tipo_sustrato_sugerido = models.CharField(choices=[
+    tipo_sustrato_sugerido = models.CharField(null=True, blank=True ,choices=[
         ('FIBRA_COCO', 'Fibra de coco'), 
         ('PERLITA', 'Perlita'), 
         ('TEZONTLE', 'Tezontle'), 
@@ -56,17 +98,37 @@ class LoteCultivo(models.Model):
         ('TURBA', 'Turba'),
         ('RAIZ_FLOTANTE', 'Sin sustrato'),
         ])
+    estado_lote = [
+        ('GERMINACION', 'En Germinación / Semillero'),
+        ('PREPARACION', 'Cama en Preparación'),
+        ('PRODUCCION', 'En Producción (Trasplantado/En Cama)'),
+        ('FINALIZADO', 'Ciclo Finalizado'),
+        ('CANCELADO', 'Lote Cancelado'),
+    ]
+    estado = models.CharField(max_length=20, choices=estado_lote, default='GERMINACION')
 
     def __str__(self):
         return f"Lote {self.id_lote} + {self.plantilla.nombre}"
 
 class TareaProgramada(models.Model):
+    TIPO_ACTIVIDAD = [
+                ('ACONDICIONAMIENTO', 'Acondicionamiento de camas'),
+                ('SIEMBRA', 'Siembra'),
+                ('RIEGO', 'Riego'),
+                ('FERTILIZACION', 'Fertilización'),
+                ('PODA', 'Poda / Deshije'),
+                ('TUTORADO', 'Tutorado / Amarre'),
+                ('TRASPLANTE', 'Trasplante'),
+                ('MONITOREO', 'Monitoreo de pH y CE'),
+                ('COSECHA', 'Cosecha'),
+            ]
+    tipo_tarea = models.CharField(max_length=20, choices=TIPO_ACTIVIDAD)
     lote_cultivo = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE, related_name="lote_cultivo")
-    tipo_tarea = models.ForeignKey('LoteCultivo', on_delete=models.CASCADE, related_name="tipo_tarea")
     fecha_programada = models.DateField()
     completada = models.BooleanField(default=False)
     insumo_utilizado = models.ForeignKey('Insumo', on_delete=models.SET_NULL, null=True, blank=True)
     fecha_completada = models.DateTimeField(null=True, blank=True)
+    operario = models.CharField(max_length=100)
     duracion_tarea = models.DurationField(null=True, blank=True)
     invernadero = models.ForeignKey('Invernadero', on_delete=models.SET_NULL, null=True, blank=True)
     bloque = models.ForeignKey('Bloque', on_delete=models.SET_NULL, null=True, blank=True)
@@ -75,6 +137,12 @@ class TareaProgramada(models.Model):
 
     def __str__(self):
         return f"Tarea {self.tipo_tarea} para {self.lote_cultivo.id_lote} programada para {self.fecha_programada}"
+
+class ActividadLote(models.Model):
+    
+    fecha = models.DateField(default=timezone.now)
+    operario = models.CharField(max_length=100)
+    observaciones = models.TextField(blank=True)
 
 class Invernadero(models.Model):
     nombre = models.CharField(max_length=100)

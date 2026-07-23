@@ -1,14 +1,90 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Crear nuevo lote de producción</h1>
-
-<form action="/crear_tarea/" method="POST">
+<form method="POST">
     {% csrf_token %}
-    {{form}}
-    <button type="submit" name="cargar_cultivo">
-        Guardar
-    </button>
+    {{form.plantilla}}
+    <!-- Campo Invernadero -->
+    <label>Invernadero:</label>
+    {{ form.invernadero }}
+
+    <!-- Campo Bloque -->
+    <label>Bloque:</label>
+    <select name="bloque" id="select-bloque" onchange="filtrarCamas()">
+        <option value="">-- Selecciona un Bloque --</option>
+        {% for bloque in form.fields.bloque.queryset %}
+            <option value="{{ bloque.id }}" data-invernadero="{{ bloque.invernadero_id }}">
+                {{ bloque.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <!-- Campo Cama -->
+    <label>Cama / Canaleta:</label>
+    <select name="cama" id="select-cama">
+        <option value="">-- Selecciona una Cama --</option>
+        {% for cama in form.fields.cama.queryset %}
+            <option value="{{ cama.id }}" data-bloque="{{ cama.bloque_id }}">
+                {{ cama.numero_cama }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Crear Lote</button>
 </form>
+
+<!-- JS para filtrar al instante sin recargar -->
+<script>
+function filtrarBloques() {
+    let invernaderoId = document.getElementById('select-invernadero').value;
+    let selectBloque = document.getElementById('select-bloque');
+    let opcionesBloque = selectBloque.querySelectorAll('option');
+
+    // Reseteamos la selección de bloque y cama
+    selectBloque.value = "";
+    document.getElementById('select-cama').value = "";
+
+    opcionesBloque.forEach(option => {
+        if (!option.value) return; // Saltamos la opción por defecto ("-- Selecciona --")
+
+        // Si el bloque pertenece al invernadero seleccionado, lo mostramos; si no, lo ocultamos
+        if (option.getAttribute('data-invernadero') === invernaderoId) {
+            option.style.display = "";
+            option.disabled = false;
+        } else {
+            option.style.display = "none";
+            option.disabled = true;
+        }
+    });
+    
+    // Disparamos la limpieza de camas
+    filtrarCamas();
+}
+
+function filtrarCamas() {
+    let bloqueId = document.getElementById('select-bloque').value;
+    let selectCama = document.getElementById('select-cama');
+    let opcionesCama = selectCama.querySelectorAll('option');
+
+    selectCama.value = "";
+
+    opcionesCama.forEach(option => {
+        if (!option.value) return;
+
+        if (option.getAttribute('data-bloque') === bloqueId) {
+            option.style.display = "";
+            option.disabled = false;
+        } else {
+            option.style.display = "none";
+            option.disabled = true;
+        }
+    });
+}
+
+// Ejecutamos una vez al cargar por si es un formulario con errores pre-llenados
+document.addEventListener("DOMContentLoaded", function() {
+    filtrarBloques();
+});
+</script>
 
 {% endblock %}

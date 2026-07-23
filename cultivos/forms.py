@@ -2,16 +2,17 @@ from django.forms import ModelForm, DateInput, Select, TextInput
 from .models import LoteCultivo, Cultivo, Invernadero, Bloque, Cama
 from django import forms
 
-class formulario_nuevo_lote(ModelForm):
+class formulario_nuevo_lote(forms.ModelForm):
     class Meta:
         model = LoteCultivo
-        fields = "__all__"
-
+        fields = ['id_lote', 'plantilla', 'invernadero', 'bloque', 'cama']
+        
         widgets = {
-            'fecha_plantacion': DateInput(
-                attrs= {'type': 'date'}
-                ),
-            }
+            'invernadero': forms.Select(attrs={'id': 'select-invernadero', 'onchange': 'filtrarBloques()'}),
+            'bloque': forms.Select(attrs={'id': 'select-bloque', 'onchange': 'filtrarCamas()'}),
+            'cama': forms.Select(attrs={'id': 'select-cama'}),
+            'fecha_plantacion': DateInput(attrs= {'type': 'date'}),
+        }
 
 class formulario_elegir_siembra(ModelForm):
     class Meta:
@@ -22,12 +23,16 @@ class formulario_cultivo_tierra(ModelForm):
     class Meta:
         model = Cultivo
         exclude = [
+            'fecha_trasplante',
             'ph_optimo_min', 
             'ph_optimo_max', 
-            'conductividad_electrica_optima', 
-            'tiempo_riego_minutos',
-            'tiempo_espera_minutos'
+            'conductividad_electrica_optima',
+            'frecuencia_monitoreo_ph_ce',
         ]
+        widgets = {
+            'fecha_plantacion': DateInput(attrs= {'type': 'date'}),
+        }
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,11 +43,16 @@ class formulario_cultivo_hidroponia(ModelForm):
     class Meta:
         model = Cultivo
         exclude = [
-            'dias_para_primer_riego', 
+            'fecha_trasplante',
+            'primer_riego', 
             'frecuencia_riego', 
-            'dias_para_primer_fertilizacion',
+            'primer_fertilizacion',
             'frecuencia_fertilizacion'
         ]
+
+        widgets = {
+            'fecha_plantacion': DateInput(attrs= {'type': 'date'}),
+            }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,6 +63,11 @@ class formulario_cultivo_mixto(ModelForm):
     class Meta:
         model = Cultivo
         fields = '__all__'
+        exclude = ['fecha_trasplante']
+
+        widgets = {
+        'fecha_plantacion': DateInput(attrs= {'type': 'date'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
