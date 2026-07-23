@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .models import Cultivo, LoteCultivo, TareaProgramada, Invernadero, Bloque, Cama, Insumo, UsoInsumo, Proveedor, CatalogoInsumos
 from .forms import formulario_nuevo_lote, formulario_cultivo_tierra, formulario_cultivo_hidroponia, formulario_cultivo_mixto , formulario_invernadero, formulario_bloque, formulario_elegir_siembra
 from django.contrib import messages
+import uuid
 
 def home(request):
     return render(request, 'base.html')
@@ -49,22 +50,23 @@ def detalle_tarea(request, tarea_id):
         'cosecha': tarea
     })
 
-def crear_tarea(request):
+import uuid
+
+def crear_lote(request):
     if request.method == 'POST':
         form = formulario_nuevo_lote(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('crear_lote.html')
+            lote = form.save(commit=False)
+            if not lote.id_lote:
+                lote.id_lote = f"LOT-{uuid.uuid4().hex[:6].upper()}"
+            lote.save() 
+            return redirect('crear_lote') #
         else:
-            messages.error(request, "Por favor corrige los errores en el formulario.")
+            print("Errores del Formulario:", form.errors)
     else:
-        # En peticiones GET creamos el formulario vacío
         form = formulario_nuevo_lote()
 
-    # Renderizamos la plantilla pasando el formulario
-    return render(request, 'crear_lote.html', {
-        'form': form
-    })
+    return render(request, 'crear_lote.html', {'form': form})
 
 def registrar_planta(request):
     if request.method == "POST":

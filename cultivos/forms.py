@@ -5,7 +5,7 @@ from django import forms
 class formulario_nuevo_lote(forms.ModelForm):
     class Meta:
         model = LoteCultivo
-        fields = ['id_lote', 'plantilla', 'invernadero', 'bloque', 'cama']
+        fields = ['id_lote', 'plantilla', 'tipo_sustrato_sugerido', 'estado', 'invernadero', 'bloque', 'cama']
         
         widgets = {
             'invernadero': forms.Select(attrs={'id': 'select-invernadero', 'onchange': 'filtrarBloques()'}),

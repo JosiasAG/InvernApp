@@ -82,13 +82,13 @@ class Cultivo(models.Model):
         return self.nombre
 
 class LoteCultivo(models.Model):
-    id_lote = models.CharField(max_length=100)
+    id_lote = models.CharField(max_length=100, null=True, blank=True)
     plantilla = models.ForeignKey(Cultivo, on_delete=models.CASCADE)
-    fecha_plantacion = models.DateField()
+    fecha_plantacion = models.DateField(default=timezone.now())
     invernadero = models.ForeignKey('Invernadero', on_delete=models.CASCADE)
     bloque = models.ForeignKey('Bloque', on_delete=models.CASCADE)
     cama = models.ForeignKey('Cama', on_delete=models.CASCADE)
-    tipo_sustrato_sugerido = models.CharField(null=True, blank=True ,choices=[
+    tipo_sustrato_sugerido = models.CharField(default='GERMINACION' ,choices=[
         ('FIBRA_COCO', 'Fibra de coco'), 
         ('PERLITA', 'Perlita'), 
         ('TEZONTLE', 'Tezontle'), 
@@ -100,7 +100,6 @@ class LoteCultivo(models.Model):
         ])
     estado_lote = [
         ('GERMINACION', 'En Germinación / Semillero'),
-        ('PREPARACION', 'Cama en Preparación'),
         ('PRODUCCION', 'En Producción (Trasplantado/En Cama)'),
         ('FINALIZADO', 'Ciclo Finalizado'),
         ('CANCELADO', 'Lote Cancelado'),

@@ -1,53 +1,92 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<h2>Crear Nuevo Lote de Cultivo</h2>
+
+{% if form.errors %}
+  <div style="color: red; background: #ffe6e6; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    <strong>Atención: Corrige los siguientes errores:</strong>
+    {{ form.errors }}
+  </div>
+{% endif %}
+
 <form method="POST">
     {% csrf_token %}
-    {{form.plantilla}}
-    <!-- Campo Invernadero -->
-    <label>Invernadero:</label>
-    {{ form.invernadero }}
+    <!-- Plantilla -->
+    <div>
+        <label>Plantilla de Cultivo:</label>
+        {{ form.plantilla }}
+    </div>
 
-    <!-- Campo Bloque -->
-    <label>Bloque:</label>
-    <select name="bloque" id="select-bloque" onchange="filtrarCamas()">
-        <option value="">-- Selecciona un Bloque --</option>
-        {% for bloque in form.fields.bloque.queryset %}
-            <option value="{{ bloque.id }}" data-invernadero="{{ bloque.invernadero_id }}">
-                {{ bloque.nombre }}
-            </option>
-        {% endfor %}
-    </select>
+    <!-- Fecha de Plantación -->
+    <div>
+        <label>Fecha de Plantación / Siembra:</label>
+        <input type="date" name="fecha_plantacion" required value="{{ request.POST.fecha_plantacion }}">
+    </div>
 
-    <!-- Campo Cama -->
-    <label>Cama / Canaleta:</label>
-    <select name="cama" id="select-cama">
-        <option value="">-- Selecciona una Cama --</option>
-        {% for cama in form.fields.cama.queryset %}
-            <option value="{{ cama.id }}" data-bloque="{{ cama.bloque_id }}">
-                {{ cama.numero_cama }}
-            </option>
-        {% endfor %}
-    </select>
+    <!-- Sustrato -->
+    <div>
+        <label for="select-sustrato">Sustrato:</label>
+        {{form.tipo_sustrato_sugerido}}
+    </div>
 
-    <button type="submit">Crear Lote</button>
+    <div>
+        <label>Estado del lote:</label>
+        {{ form.estado }}
+    </div>
+
+    <!-- Invernadero -->
+    <div>
+        <label for="select-invernadero">Invernadero:</label>
+        <select name="invernadero" id="select-invernadero" onchange="filtrarBloques()" required>
+            <option value="">-- Selecciona un Invernadero --</option>
+            {% for inv in form.fields.invernadero.queryset %}
+                <option value="{{ inv.id }}">{{ inv.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Bloque -->
+    <div>
+        <label for="select-bloque">Bloque:</label>
+        <select name="bloque" id="select-bloque" onchange="filtrarCamas()" required>
+            <option value="">-- Selecciona un Bloque --</option>
+            {% for bloque in form.fields.bloque.queryset %}
+                <option value="{{ bloque.id }}" data-invernadero="{{ bloque.invernadero_id }}">
+                    {{ bloque.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Cama -->
+    <div>
+        <label for="select-cama">Cama / Canaleta:</label>
+        <select name="cama" id="select-cama" required>
+            <option value="">-- Selecciona una Cama --</option>
+            {% for cama in form.fields.cama.queryset %}
+                <option value="{{ cama.id }}" data-bloque="{{ cama.bloque_id }}">
+                    {{ cama.numero_cama }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" style="margin-top: 15px;">Registrar nuevo lote</button>
 </form>
 
-<!-- JS para filtrar al instante sin recargar -->
 <script>
 function filtrarBloques() {
     let invernaderoId = document.getElementById('select-invernadero').value;
     let selectBloque = document.getElementById('select-bloque');
     let opcionesBloque = selectBloque.querySelectorAll('option');
 
-    // Reseteamos la selección de bloque y cama
     selectBloque.value = "";
     document.getElementById('select-cama').value = "";
 
     opcionesBloque.forEach(option => {
-        if (!option.value) return; // Saltamos la opción por defecto ("-- Selecciona --")
+        if (!option.value) return;
 
-        // Si el bloque pertenece al invernadero seleccionado, lo mostramos; si no, lo ocultamos
         if (option.getAttribute('data-invernadero') === invernaderoId) {
             option.style.display = "";
             option.disabled = false;
@@ -57,7 +96,6 @@ function filtrarBloques() {
         }
     });
     
-    // Disparamos la limpieza de camas
     filtrarCamas();
 }
 
@@ -81,10 +119,8 @@ function filtrarCamas() {
     });
 }
 
-// Ejecutamos una vez al cargar por si es un formulario con errores pre-llenados
 document.addEventListener("DOMContentLoaded", function() {
     filtrarBloques();
 });
 </script>
-
 {% endblock %}
